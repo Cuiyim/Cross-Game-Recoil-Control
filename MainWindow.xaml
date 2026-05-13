@@ -1,0 +1,452 @@
+﻿<Window x:Class="LegendaryCSharp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Legendary"
+        Icon="Assets/app.ico"
+        Width="880"
+        Height="660"
+        MinWidth="760"
+        MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        Background="#F4F1EA">
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Background="#1F2A2E" CornerRadius="8" Padding="18">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Legendary"
+                               Foreground="#F7F0E2"
+                               FontSize="26"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="热键、压枪、屏息、切枪、图像识别"
+                               Foreground="#C8D6CF"
+                               Margin="0,6,0,0"
+                               FontSize="14" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="使用说明" Width="82" Height="34" Margin="0,0,8,0" Click="HelpButton_Click" />
+                    <Button x:Name="SaveButton" Content="保存全部" Width="90" Height="34" Margin="0,0,8,0" Click="SaveButton_Click" />
+                    <Button x:Name="ReloadButton" Content="重载" Width="70" Height="34" Click="ReloadButton_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TabControl x:Name="MainTabs" Grid.Row="1" Margin="0,16,0,16">
+            <TabItem Header="总览">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="14">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <Button Content="档案" Width="72" Height="30" Click="OpenProfilesButton_Click" />
+                        </StackPanel>
+
+                        <Grid Margin="0,0,0,18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130" />
+                                <ColumnDefinition Width="220" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="总开关热键" VerticalAlignment="Center" />
+                            <Grid Grid.Column="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="66" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="MasterHotkeyBox"
+                                         Height="30"
+                                         IsReadOnly="True"
+                                         InputMethod.IsInputMethodEnabled="False"
+                                         PreviewKeyDown="HotkeyBox_PreviewKeyDown" />
+                                <Button Grid.Column="1"
+                                        Content="选择"
+                                        Height="30"
+                                        Margin="6,0,0,0"
+                                        Click="PickMasterHotkeyButton_Click" />
+                            </Grid>
+                            <TextBlock Grid.Column="2"
+                                       Text="默认 PageDown，保存后生效。"
+                                       Foreground="#66736F"
+                                       VerticalAlignment="Center"
+                                       Margin="12,0,0,0" />
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+
+                            <GroupBox Header="热键辅助" Padding="14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="72" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="36" />
+                                        <RowDefinition Height="36" />
+                                        <RowDefinition Height="36" />
+                                        <RowDefinition Height="36" />
+                                    </Grid.RowDefinitions>
+
+                                    <CheckBox x:Name="RecoilEnabledBox" Content="压枪" Grid.Row="0" VerticalAlignment="Center" />
+                                    <Button Content="配置" Grid.Row="0" Grid.Column="1" Height="28" Click="OpenRecoilButton_Click" />
+
+                                    <CheckBox x:Name="BreathHoldEnabledBox" Content="屏息" Grid.Row="1" VerticalAlignment="Center" />
+                                    <Button Content="配置" Grid.Row="1" Grid.Column="1" Height="28" Click="OpenBreathButton_Click" />
+
+                                    <CheckBox x:Name="SemiAutoModeBox" Content="半自动" Grid.Row="2" VerticalAlignment="Center" />
+                                    <Button Content="配置" Grid.Row="2" Grid.Column="1" Height="28" Click="OpenRecoilButton_Click" />
+
+                                    <CheckBox x:Name="Cut31EnabledBox" Content="31切枪" Grid.Row="3" VerticalAlignment="Center" />
+                                    <Button Content="配置" Grid.Row="3" Grid.Column="1" Height="28" Click="OpenBreathButton_Click" />
+                                </Grid>
+                            </GroupBox>
+
+                            <GroupBox Grid.Column="2" Header="图像识别" Padding="14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="72" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="36" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <CheckBox x:Name="ImageRecognitionEnabledBox" Content="自动触发" Grid.Row="0" VerticalAlignment="Center" />
+                                    <Button Content="配置" Grid.Row="0" Grid.Column="1" Height="28" Click="OpenImageButton_Click" />
+                                    <TextBlock Grid.Row="1"
+                                               Grid.ColumnSpan="2"
+                                               Text="F2 切换图像识别；总开关关闭时暂停。"
+                                               Foreground="#66736F"
+                                               TextWrapping="Wrap"
+                                               Margin="0,10,0,0" />
+                                </Grid>
+                            </GroupBox>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="压枪">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1.1*" />
+                        </Grid.ColumnDefinitions>
+
+                        <GroupBox Header="压枪参数" Padding="14">
+                            <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="侧触发键" Grid.Row="0" VerticalAlignment="Center" />
+                                <ComboBox x:Name="TriggerSideKeyBox" Grid.Row="0" Grid.Column="1" Margin="4">
+                                    <ComboBoxItem Content="XButton2" />
+                                    <ComboBoxItem Content="XButton1" />
+                                    <ComboBoxItem Content="RButton" />
+                                    <ComboBoxItem Content="MButton" />
+                                </ComboBox>
+
+                                <TextBlock Text="射速" Grid.Row="1" VerticalAlignment="Center" />
+                                <TextBox x:Name="FireRateBox" Grid.Row="1" Grid.Column="1" Margin="4" TextChanged="RecoilPreview_Changed" />
+
+                                <TextBlock Text="垂直力度" Grid.Row="2" VerticalAlignment="Center" />
+                                <TextBox x:Name="RecoilForceBox" Grid.Row="2" Grid.Column="1" Margin="4" TextChanged="RecoilPreview_Changed" />
+
+                                <TextBlock Text="水平力度" Grid.Row="3" VerticalAlignment="Center" />
+                                <TextBox x:Name="HorizontalRecoilBox" Grid.Row="3" Grid.Column="1" Margin="4" TextChanged="RecoilPreview_Changed" />
+
+                                <TextBlock Text="水平模式" Grid.Row="4" VerticalAlignment="Center" />
+                                <ComboBox x:Name="HorizontalPatternBox" Grid.Row="4" Grid.Column="1" Margin="4" SelectionChanged="RecoilPreview_Changed">
+                                    <ComboBoxItem Content="固定方向" />
+                                    <ComboBoxItem Content="左右交替" />
+                                </ComboBox>
+                            </Grid>
+                            <Button Content="保存压枪" Height="32" Margin="0,12,0,0" Click="SaveRecoilModuleButton_Click" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Grid.Column="2" Header="弹道预览" Padding="14">
+                            <StackPanel>
+                                <TextBlock x:Name="TrajectoryInfoText"
+                                           Text="垂直: 0  横向: 0"
+                                           Foreground="#263238"
+                                           Margin="0,0,0,10" />
+                                <Border BorderBrush="#B9B0A1" BorderThickness="1" Background="#FFFDF8" CornerRadius="4">
+                                    <Canvas x:Name="TrajectoryCanvas"
+                                            Height="220"
+                                            Background="#FFFFFF"
+                                            SizeChanged="TrajectoryCanvas_SizeChanged">
+                                        <Line x:Name="TrajectoryVerticalGuide" Stroke="#DDD6C9" StrokeDashArray="3 3" StrokeThickness="1" />
+                                        <Line x:Name="TrajectoryHorizontalGuide" Stroke="#EEE7DA" StrokeDashArray="2 4" StrokeThickness="1" />
+                                        <Line x:Name="TrajectoryLine" Stroke="#D34A2C" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                        <Ellipse x:Name="TrajectoryStartDot" Width="8" Height="8" Fill="#263238" />
+                                        <Ellipse x:Name="TrajectoryEndDot" Width="10" Height="10" Fill="#D34A2C" />
+                                    </Canvas>
+                                </Border>
+                                <TextBlock Text="数值变化后自动刷新。"
+                                           Foreground="#66736F"
+                                           TextWrapping="Wrap"
+                                           Margin="0,10,0,0" />
+                            </StackPanel>
+                        </GroupBox>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="屏息 / 31">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+
+                        <GroupBox Header="屏息配置" Padding="14">
+                            <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="屏息键" VerticalAlignment="Center" />
+                                <Grid Grid.Column="1" Margin="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="66" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="BreathHoldKeyBox" IsReadOnly="True" />
+                                    <Button Grid.Column="1"
+                                            Content="选择"
+                                            Margin="6,0,0,0"
+                                            Click="PickBreathHoldKeyButton_Click" />
+                                </Grid>
+                            </Grid>
+                            <Button Content="保存屏息" Height="32" Margin="0,12,0,0" Click="SaveBreathModuleButton_Click" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Grid.Column="2" Header="31切枪" Padding="14">
+                            <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="31间隔(ms)" VerticalAlignment="Center" />
+                                <TextBox x:Name="Cut31IntervalBox" Grid.Column="1" Margin="4" />
+                            </Grid>
+                            <Button Content="保存31切枪" Height="32" Margin="0,12,0,0" Click="SaveCut31ModuleButton_Click" />
+                            </StackPanel>
+                        </GroupBox>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="图像识别">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="14">
+                        <GroupBox Header="搜索区域" Padding="14" Margin="0,0,0,12">
+                            <UniformGrid Columns="4" Rows="2">
+                                <TextBlock Text="X1" VerticalAlignment="Center" />
+                                <TextBox x:Name="SearchX1Box" Margin="4" />
+                                <TextBlock Text="Y1" VerticalAlignment="Center" />
+                                <TextBox x:Name="SearchY1Box" Margin="4" />
+                                <TextBlock Text="X2" VerticalAlignment="Center" />
+                                <TextBox x:Name="SearchX2Box" Margin="4" />
+                                <TextBlock Text="Y2" VerticalAlignment="Center" />
+                                <TextBox x:Name="SearchY2Box" Margin="4" />
+                            </UniformGrid>
+                        </GroupBox>
+
+                        <GroupBox Header="颜色与触发" Padding="14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="目标颜色" Grid.Row="0" VerticalAlignment="Center" />
+                                <TextBox x:Name="TargetColorBox" Grid.Row="0" Grid.Column="1" Margin="4" />
+
+                                <CheckBox x:Name="UseTargetColorBox" Content="使用目标颜色" Grid.Row="1" Grid.Column="1" Margin="4" />
+
+                                <TextBlock Text="容差(0-255)" Grid.Row="2" VerticalAlignment="Center" />
+                                <TextBox x:Name="ToleranceBox" Grid.Row="2" Grid.Column="1" Margin="4" />
+
+                                <TextBlock Text="间隔(ms)" Grid.Row="3" VerticalAlignment="Center" />
+                                <TextBox x:Name="IntervalBox" Grid.Row="3" Grid.Column="1" Margin="4" />
+
+                                <TextBlock Text="发送键" Grid.Row="4" VerticalAlignment="Center" />
+                                <Grid Grid.Row="4" Grid.Column="1" Margin="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="66" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TriggerKeyBox" IsReadOnly="True" />
+                                    <Button Grid.Column="1"
+                                            Content="选择"
+                                            Margin="6,0,0,0"
+                                            Click="PickTriggerKeyButton_Click" />
+                                </Grid>
+
+                                <TextBlock Text="连续命中" Grid.Row="5" VerticalAlignment="Center" />
+                                <TextBox x:Name="HitStreakBox" Grid.Row="5" Grid.Column="1" Margin="4" />
+
+                                <TextBlock Text="触发方式" Grid.Row="6" VerticalAlignment="Center" />
+                                <ComboBox x:Name="TriggerModeBox" Grid.Row="6" Grid.Column="1" Margin="4">
+                                    <ComboBoxItem Content="Tap" />
+                                    <ComboBoxItem Content="Down" />
+                                    <ComboBoxItem Content="Up" />
+                                    <ComboBoxItem Content="Auto" />
+                                </ComboBox>
+
+                                <TextBlock Text="冷却(ms)" Grid.Row="7" VerticalAlignment="Center" />
+                                <TextBox x:Name="ImageCooldownBox" Grid.Row="7" Grid.Column="1" Margin="4" />
+
+                                <TextBlock Text="取色偏移" Grid.Row="8" VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Horizontal" Margin="4">
+                                    <TextBox x:Name="ColorPickOffsetXBox" Width="64" />
+                                    <TextBlock Text="X" VerticalAlignment="Center" Margin="6,0" />
+                                    <TextBox x:Name="ColorPickOffsetYBox" Width="64" />
+                                    <TextBlock Text="Y" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                </StackPanel>
+
+                                <CheckBox x:Name="ImageDebugBox" Content="调试日志" Grid.Row="9" Grid.Column="1" Margin="4" />
+                            </Grid>
+                        </GroupBox>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                            <Button x:Name="PickColorButton" Content="取色" Width="82" Height="34" Click="PickColorButton_Click" />
+                            <TextBox x:Name="ExtractedColorBox" Width="160" Height="30" Margin="10,0,0,0" IsReadOnly="True" VerticalContentAlignment="Center" />
+                            <Button x:Name="SearchColorButton" Content="搜色" Width="82" Height="34" Margin="10,0,0,0" Click="SearchColorButton_Click" />
+                            <Button x:Name="DiagnoseImageButton" Content="诊断" Width="82" Height="34" Margin="10,0,0,0" Click="DiagnoseImageButton_Click" />
+                            <Button x:Name="PickRegionButton" Content="框选区域" Width="92" Height="34" Margin="10,0,0,0" Click="PickRegionButton_Click" />
+                            <Button Content="保存识别" Width="92" Height="34" Margin="10,0,0,0" Click="SaveImageModuleButton_Click" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="配置档案 / 日志">
+                <Grid Margin="14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="310" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <GroupBox Header="通用档案" Padding="14" Margin="0,0,0,12">
+                            <StackPanel>
+                                <ComboBox x:Name="GeneralProfileBox"
+                                          Height="30"
+                                          Margin="0,0,0,8"
+                                          IsEditable="True"
+                                          IsTextSearchEnabled="False" />
+                                <UniformGrid Columns="4">
+                                    <Button x:Name="RefreshGeneralProfilesButton" Content="刷新" Height="30" Click="RefreshProfilesButton_Click" />
+                                    <Button x:Name="SaveGeneralProfileButton" Content="保存" Height="30" Margin="4,0,0,0" Click="SaveGeneralProfileButton_Click" />
+                                    <Button x:Name="LoadGeneralProfileButton" Content="加载" Height="30" Margin="4,0,0,0" Click="LoadGeneralProfileButton_Click" />
+                                    <Button x:Name="DeleteGeneralProfileButton" Content="删除" Height="30" Margin="4,0,0,0" Click="DeleteGeneralProfileButton_Click" />
+                                </UniformGrid>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="图像识别档案" Padding="14">
+                            <StackPanel>
+                                <ComboBox x:Name="ImageProfileBox"
+                                          Height="30"
+                                          Margin="0,0,0,8"
+                                          IsEditable="True"
+                                          IsTextSearchEnabled="False" />
+                                <UniformGrid Columns="4">
+                                    <Button x:Name="RefreshImageProfilesButton" Content="刷新" Height="30" Click="RefreshProfilesButton_Click" />
+                                    <Button x:Name="SaveImageProfileButton" Content="保存" Height="30" Margin="4,0,0,0" Click="SaveImageProfileButton_Click" />
+                                    <Button x:Name="LoadImageProfileButton" Content="加载" Height="30" Margin="4,0,0,0" Click="LoadImageProfileButton_Click" />
+                                    <Button x:Name="DeleteImageProfileButton" Content="删除" Height="30" Margin="4,0,0,0" Click="DeleteImageProfileButton_Click" />
+                                </UniformGrid>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+
+                    <GroupBox Grid.Column="2" Header="运行信息" Padding="14">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="当前取色" VerticalAlignment="Center" />
+                                <TextBox x:Name="PickedColorBox" Grid.Column="1" IsReadOnly="True" Height="30" />
+                            </Grid>
+
+                            <Grid Grid.Row="1" Margin="0,10,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="最后命中" VerticalAlignment="Center" />
+                                <TextBox x:Name="SearchResultBox" Grid.Column="1" IsReadOnly="True" Height="30" />
+                            </Grid>
+
+                            <TextBox x:Name="LogBox"
+                                     Grid.Row="2"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Border Grid.Row="2" Background="#E6DED0" CornerRadius="6" Padding="10">
+            <TextBlock x:Name="StatusText" Text="准备就绪" Foreground="#243033" />
+        </Border>
+    </Grid>
+</Window>
+

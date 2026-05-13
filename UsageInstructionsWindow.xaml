@@ -1,0 +1,48 @@
+<Window x:Class="LegendaryCSharp.UsageInstructionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="使用说明"
+        Icon="Assets/app.ico"
+        Width="680"
+        Height="620"
+        MinWidth="520"
+        MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="#F4F1EA">
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="使用说明"
+                   FontSize="24"
+                   FontWeight="SemiBold"
+                   Foreground="#1F2A2E"
+                   Margin="0,0,0,14" />
+
+        <Border Grid.Row="1"
+                BorderBrush="#C7BCA9"
+                BorderThickness="1"
+                Background="#FFFCF7"
+                CornerRadius="6">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          Padding="14">
+                <TextBlock x:Name="UsageText"
+                           TextWrapping="Wrap"
+                           FontSize="14"
+                           LineHeight="23"
+                           Foreground="#263235" />
+            </ScrollViewer>
+        </Border>
+
+        <Button Grid.Row="2"
+                Content="关闭"
+                Width="88"
+                Height="34"
+                Margin="0,14,0,0"
+                HorizontalAlignment="Right"
+                Click="CloseButton_Click" />
+    </Grid>
+</Window>
