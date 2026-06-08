@@ -6,6 +6,8 @@ namespace LegendaryCSharp;
 public sealed class AppSettings
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private const string ExportFormat = "LegendaryCSharp.SettingsExport";
+    private const string ExportAppVersion = "3.1.5";
 
     public string Language { get; set; } = Localization.Chinese;
     public string MasterHotkey { get; set; } = "PageDown";
@@ -97,6 +99,89 @@ public sealed class AppSettings
         WriteJson(ImageSettingsPath, ImageRecognitionSettingsDocument.From(this));
     }
 
+    public void ExportToFile(string path)
+    {
+        WriteJson(path, SettingsExportDocument.From(this));
+    }
+
+    public static bool TryImportFromFile(string path, out AppSettings settings)
+    {
+        settings = new AppSettings();
+
+        try
+        {
+            if (!File.Exists(path))
+            {
+                return false;
+            }
+
+            var json = File.ReadAllText(path);
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            if (root.TryGetProperty(nameof(SettingsExportDocument.Format), out _)
+                || root.TryGetProperty(nameof(SettingsExportDocument.Main), out _)
+                || root.TryGetProperty(nameof(SettingsExportDocument.ImageRecognition), out _))
+            {
+                var export = JsonSerializer.Deserialize<SettingsExportDocument>(json);
+                if (export is null)
+                {
+                    return false;
+                }
+
+                export.ApplyTo(settings);
+                NormalizeImportedSettings(settings);
+                return true;
+            }
+
+            if (root.TryGetProperty(nameof(ImageRecognitionEnabled), out _)
+                && root.TryGetProperty(nameof(MasterHotkey), out _))
+            {
+                settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                NormalizeImportedSettings(settings);
+                return true;
+            }
+
+            if (root.TryGetProperty(nameof(MainSettingsDocument.MasterHotkey), out _)
+                || root.TryGetProperty(nameof(MainSettingsDocument.TriggerSideKey), out _))
+            {
+                var main = JsonSerializer.Deserialize<MainSettingsDocument>(json);
+                if (main is null)
+                {
+                    return false;
+                }
+
+                main.ApplyTo(settings);
+                NormalizeImportedSettings(settings);
+                return true;
+            }
+
+            if (root.TryGetProperty(nameof(ImageRecognitionSettingsDocument.TargetColor), out _)
+                || root.TryGetProperty(nameof(ImageRecognitionSettingsDocument.SearchX1), out _))
+            {
+                var image = JsonSerializer.Deserialize<ImageRecognitionSettingsDocument>(json);
+                if (image is null)
+                {
+                    return false;
+                }
+
+                image.ApplyTo(settings);
+                NormalizeImportedSettings(settings);
+                return true;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+
+        return false;
+    }
+
     private static T? TryReadJson<T>(string path)
     {
         try
@@ -119,6 +204,33 @@ public sealed class AppSettings
     {
         var json = JsonSerializer.Serialize(value, JsonOptions);
         File.WriteAllText(path, json);
+    }
+
+    private static void NormalizeImportedSettings(AppSettings settings)
+    {
+        settings.Language = Localization.NormalizeLanguage(settings.Language);
+        settings.UseTargetColor = true;
+    }
+
+    public sealed class SettingsExportDocument
+    {
+        public string Format { get; set; } = ExportFormat;
+        public string AppVersion { get; set; } = ExportAppVersion;
+        public DateTime ExportedAtUtc { get; set; } = DateTime.UtcNow;
+        public MainSettingsDocument? Main { get; set; }
+        public ImageRecognitionSettingsDocument? ImageRecognition { get; set; }
+
+        public static SettingsExportDocument From(AppSettings settings) => new()
+        {
+            Main = MainSettingsDocument.From(settings),
+            ImageRecognition = ImageRecognitionSettingsDocument.From(settings)
+        };
+
+        public void ApplyTo(AppSettings settings)
+        {
+            Main?.ApplyTo(settings);
+            ImageRecognition?.ApplyTo(settings);
+        }
     }
 
     public sealed class MainSettingsDocument

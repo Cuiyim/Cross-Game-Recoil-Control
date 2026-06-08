@@ -42,6 +42,8 @@ public static class UsageGuide
         - 通用档案：压枪、屏息、半自动、31切枪这些参数。
         - 图像识别档案：区域、颜色、容差、发送键、触发方式。
         - 档案保存到 Windows 用户数据目录，旧版 exe 旁边的 Profiles 会自动迁移。
+        - 导出配置会把当前通用设置和图像识别设置打包成一个 JSON 文件，方便备份或换电脑。
+        - 导入配置会读取导出的 JSON 并写回当前配置，界面和运行参数会立刻刷新。
         - 保存、加载、删除按钮会短暂显示结果，然后自动恢复。
 
         没反应先看这里
@@ -94,6 +96,8 @@ public static class UsageGuide
         - General profiles store recoil, breath hold, semi-auto, and 31 swap parameters.
         - Image profiles store region, color, tolerance, send key, and trigger mode.
         - Profiles are saved in the Windows user data folder. Legacy Profiles beside the exe are migrated automatically.
+        - Export Config packages the current general settings and image recognition settings into one JSON file for backup or migration.
+        - Import Config reads that JSON back into the current settings, then refreshes the UI and runtime settings immediately.
         - Save, Load, and Delete buttons show a short result and then return to normal.
 
         Troubleshooting

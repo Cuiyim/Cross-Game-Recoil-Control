@@ -423,6 +423,83 @@ public partial class MainWindow : Window
 
     private void RefreshProfilesButton_Click(object sender, RoutedEventArgs e) => RefreshProfiles();
 
+    private void ImportConfigButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = Localization.T("Config.ImportDialogTitle"),
+            Filter = Localization.T("Config.FileFilter"),
+            DefaultExt = ".json",
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            if (!AppSettings.TryImportFromFile(dialog.FileName, out var importedSettings))
+            {
+                SetStatus(Localization.T("Config.ImportFailed"));
+                return;
+            }
+
+            _settings = importedSettings;
+            Localization.SetLanguage(_settings.Language);
+            _settings.Save();
+            LoadSettingsIntoUi();
+            RegisterHotkeys();
+            RefreshProfiles();
+            ShowButtonFeedback(ImportConfigButton, Localization.T("Status.Loaded"));
+            var message = Localization.Format("Config.Imported", dialog.FileName);
+            SetStatus(message);
+            Log(message);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(Localization.Format("Config.ImportError", ex.Message));
+            Log(ex.ToString());
+        }
+    }
+
+    private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!TryReadSettingsFromUi(out var settings))
+        {
+            return;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = Localization.T("Config.ExportDialogTitle"),
+            Filter = Localization.T("Config.FileFilter"),
+            DefaultExt = ".json",
+            AddExtension = true,
+            FileName = $"Legendary-config-{DateTime.Now:yyyyMMdd-HHmmss}.json"
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            settings.ExportToFile(dialog.FileName);
+            ShowButtonFeedback(ExportConfigButton, Localization.T("Status.Saved"));
+            var message = Localization.Format("Config.Exported", dialog.FileName);
+            SetStatus(message);
+            Log(message);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(Localization.Format("Config.ExportError", ex.Message));
+            Log(ex.ToString());
+        }
+    }
+
     private void SaveGeneralProfileButton_Click(object sender, RoutedEventArgs e)
     {
         if (!TryReadGeneralSettingsFromUi(out var settings))

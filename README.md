@@ -65,6 +65,11 @@ C:\Users\Legen\Desktop\LegendaryCSharp\bin\Release\net10.0-windows\win-x64\publi
   - 语言现在作为全局界面偏好保存，不再跟随单个档案切换。
   - 主配置仍会保存语言，重启后继续沿用上次选择。
 
+- **配置导入 / 导出**：
+  - 新增“导入配置 / 导出配置”按钮，可把当前通用设置和图像识别设置打包成一个 JSON 文件。
+  - 导入后会自动写回当前配置、刷新界面、重新注册热键，并立即应用运行参数。
+  - 导入兼容旧的完整配置、通用配置和图像识别配置 JSON，方便备份、迁移和回滚。
+
 - **版本同步**：
   - 程序标题、程序集版本、文件版本、产品名和内置使用说明同步为 `v3.1.5`。
   - 使用教程标题同步为 `Legendary v3.1.5`。
@@ -446,6 +451,11 @@ C:\Users\Legen\Desktop\LegendaryCSharp\bin\Release\net10.0-windows\win-x64\publi
   - Fixed an issue where loading a general profile could overwrite the current UI language.
   - Language is now treated as a global UI preference instead of a per-profile setting.
   - The main configuration still saves the selected language and restores it after restart.
+
+- **Configuration import / export**:
+  - Added `导入配置 / Import Config` and `导出配置 / Export Config` buttons to package current general settings and image recognition settings into one JSON file.
+  - After import, the app writes values back to the current settings, refreshes the UI, registers hotkeys again, and applies runtime settings immediately.
+  - Import supports older full settings, general settings, and image recognition settings JSON files for backup, migration, and rollback.
 
 - **Version synchronization**:
   - Program title, assembly version, file version, product name, and built-in guide are synced to `v3.1.5`.

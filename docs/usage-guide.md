@@ -325,6 +325,15 @@ image-diagnostic.png
 2. 点“删除”。
 3. 删除后点“刷新”可以重新读取列表。
 
+### 导入 / 导出配置文件
+
+这组按钮用于整套配置的备份和迁移，和上面的“通用档案 / 图像识别档案”不同。
+
+1. 点“导出配置”，程序会把当前通用设置和图像识别设置保存成一个 JSON 文件。
+2. 点“导入配置”，选择之前导出的 JSON 文件。
+3. 导入后程序会写回当前配置、刷新界面、重新注册热键，并立即应用运行参数。
+4. 导入也兼容旧的完整配置 JSON、通用配置 JSON 和图像识别配置 JSON。
+
 ### 运行信息
 
 运行信息区域会显示：
@@ -760,6 +769,15 @@ Profiles are separated into two types:
 1. Select a profile.
 2. Click `删除 / Delete`.
 3. After deleting, click `刷新 / Refresh` to reload the list.
+
+### Import / Export Configuration File
+
+These buttons are for full configuration backup and migration. They are different from the separate general and image recognition profiles above.
+
+1. Click `导出配置 / Export Config` to save the current general settings and image recognition settings into one JSON file.
+2. Click `导入配置 / Import Config`, then select a previously exported JSON file.
+3. After import, the app writes the values back to the current settings, refreshes the UI, registers hotkeys again, and applies runtime settings immediately.
+4. Import also supports older full settings JSON files, general settings JSON files, and image recognition settings JSON files.
 
 ### Runtime Info
 

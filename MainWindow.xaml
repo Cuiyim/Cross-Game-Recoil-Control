@@ -399,7 +399,7 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <GroupBox Header="图像识别档案" Padding="14">
+                        <GroupBox Header="图像识别档案" Padding="14" Margin="0,0,0,12">
                             <StackPanel>
                                 <ComboBox x:Name="ImageProfileBox"
                                           Height="30"
@@ -413,6 +413,13 @@
                                     <Button x:Name="DeleteImageProfileButton" Content="删除" Height="30" Margin="4,0,0,0" Click="DeleteImageProfileButton_Click" />
                                 </UniformGrid>
                             </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="配置文件" Padding="14">
+                            <UniformGrid Columns="2">
+                                <Button x:Name="ImportConfigButton" Content="导入配置" Height="30" Click="ImportConfigButton_Click" />
+                                <Button x:Name="ExportConfigButton" Content="导出配置" Height="30" Margin="4,0,0,0" Click="ExportConfigButton_Click" />
+                            </UniformGrid>
                         </GroupBox>
                     </StackPanel>
 
