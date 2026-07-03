@@ -17,7 +17,7 @@
 
 ### 直接运行发行版
 
-1. 下载或复制 `Legendary游戏助手v3.1.5.exe` 到任意目录。
+1. 下载或复制 `Legendary游戏助手v3.1.8.exe` 到任意目录。
 2. 右键该 `.exe` 文件：**以管理员身份运行**。
 3. 程序启动后：
    - `PageDown`：切换热键辅助总开关。
@@ -51,6 +51,27 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 ```text
 C:\Users\Legen\Desktop\LegendaryCSharp\bin\Release\net10.0-windows\win-x64\publish\LegendaryCSharp.exe
 ```
+
+---
+
+## [v3.1.8]
+
+> 本版聚焦两件事：界面优化，以及图像识别底层重构为 DXGI 桌面复制。
+
+### 本次更新
+
+- **界面优化**：
+  - 全局改用统一的浅色 Apple 风主题：圆角卡片、毛玻璃背景（Windows 11 Mica）、iOS 风格开关、分段式标签页、胶囊按钮、圆角输入框。
+  - 主窗口、选择按键窗、使用说明窗一并改版；配色统一为系统蓝强调色 + 中性灰文字。
+  - 修复英文界面文字遮挡：部分按钮/标签因英文较长且控件固定宽度而被截断（如 Profiles / Select / Config / Refresh / Fixed Direction），改为自适应最小宽度、按内容自适应列宽、过长弹道文本自动换行，中英文均完整显示。
+  - 仅改外观，不改任何功能、按键和操作流程，功能教程内容不变。
+  - 实现：新增全局样式字典 `Themes/AppleTheme.xaml`（隐式样式，自动套用到所有控件）+ `MicaBackdrop.cs`（毛玻璃背景）。
+
+- **DXGI 重构图像识别**：
+  - 图像识别的屏幕捕获底层重构为 **DXGI 桌面复制（Desktop Duplication）**，经 Vortice（`Vortice.Direct3D11` / `Vortice.DXGI`）实现 GPU 加速取帧，替换原先基于 GDI 的逐帧抓屏。
+  - 显著降低取帧与扫描的开销和延迟，识别更稳、CPU 占用更低；新增 `LastAcquireMs` / `LastScanMs` 性能指标便于观测。
+  - 保留 GDI 回退路径：当 DXGI 不可用（如环境不支持或访问丢失）时自动降级，保证兼容性；实际后端可由 `LastCaptureBackend` 查看。
+  - 实现：新增 `DesktopDuplicationCapture.cs`，`ScreenCaptureService.cs` 统一调度 DXGI 主路径与 GDI 回退。
 
 ---
 
@@ -404,7 +425,7 @@ This document records the major release history of Legendary Recoil Assistant. T
 
 ### Run The Release Build
 
-1. Download or copy `Legendary游戏助手v3.1.5.exe` to any folder.
+1. Download or copy `Legendary游戏助手v3.1.8.exe` to any folder.
 2. Right-click the `.exe` file and choose **Run as administrator**.
 3. After launch:
    - `PageDown`: toggles the hotkey-assisted features.
@@ -438,6 +459,27 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 ```text
 C:\Users\Legen\Desktop\LegendaryCSharp\bin\Release\net10.0-windows\win-x64\publish\LegendaryCSharp.exe
 ```
+
+---
+
+## [v3.1.8]
+
+> This release focuses on two things: UI polish, and rebuilding image recognition on top of DXGI Desktop Duplication.
+
+### Changes
+
+- **UI polish**:
+  - Switched to a unified light Apple-style theme: rounded cards, a frosted backdrop (Windows 11 Mica), iOS-style toggle switches, segmented tabs, pill buttons, and rounded inputs.
+  - The main window, key picker, and guide window were all restyled; colors unified to a system-blue accent with neutral-gray text.
+  - Fixed clipped English text: some buttons/labels were truncated because English runs longer and several controls used fixed widths (e.g. Profiles / Select / Config / Refresh / Fixed Direction). They now use an adaptive minimum width, content-sized columns, and wrapping for the long trajectory line, so both languages display fully.
+  - Appearance only — no change to features, keys, or workflows; the usage tutorial content is unchanged.
+  - Implementation: a global style dictionary `Themes/AppleTheme.xaml` (implicit styles applied to all controls) plus `MicaBackdrop.cs` (frosted backdrop).
+
+- **DXGI-based image recognition rebuild**:
+  - The screen-capture layer behind image recognition was rebuilt on **DXGI Desktop Duplication**, using Vortice (`Vortice.Direct3D11` / `Vortice.DXGI`) for GPU-accelerated frame acquisition, replacing the previous GDI-based per-frame grab.
+  - Substantially lower acquire/scan latency and CPU usage, with steadier recognition; new `LastAcquireMs` / `LastScanMs` metrics for observability.
+  - A GDI fallback path is retained: when DXGI is unavailable (unsupported environment or access lost) it degrades automatically for compatibility; the active backend is reported via `LastCaptureBackend`.
+  - Implementation: new `DesktopDuplicationCapture.cs`, with `ScreenCaptureService.cs` orchestrating the DXGI primary path and the GDI fallback.
 
 ---
 
