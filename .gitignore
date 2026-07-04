@@ -1,14 +1,13 @@
-# Build outputs
+# ── 构建与发布产物（可自动重建，勿提交）──
 bin/
 obj/
 publish/
-publish-updated/
 
-# Local .NET caches
+# ── 本地 .NET 缓存 ──
 .dotnet-cli/
 .dotnet-home/
 
-# User and IDE files
+# ── IDE / 编辑器 ──
 .vs/
 .vscode/
 .idea/
@@ -17,22 +16,22 @@ publish-updated/
 *.userosscache
 *.sln.docstates
 
-# Runtime/debug files
+# ── 运行期 / 调试产物 ──
 *.pdb
 *.log
 *.tmp
 image-diagnostic.png
 Profiles/
 
-# Local app settings generated next to the exe
+# ── 程序在 exe 旁生成的本地配置 ──
 LegendaryCSharp.settings.json
 LegendaryCSharp.image-recognition.json
 
-# Release binaries should go to GitHub Releases, not source commits
+# ── 发行二进制走 GitHub Releases，不进源码 ──
 *.exe
 *.zip
 
-# AI 助手 / Cowork 交互产生的文件和目录（无需提交）
+# ── AI 助手 / Cowork 交互产物（保留在本地，仅不提交）──
 .claude/
 .cowork/
 *.skill
