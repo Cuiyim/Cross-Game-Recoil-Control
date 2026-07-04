@@ -31,3 +31,12 @@ LegendaryCSharp.image-recognition.json
 # Release binaries should go to GitHub Releases, not source commits
 *.exe
 *.zip
+
+# AI 助手 / Cowork 交互产生的文件和目录（无需提交）
+.claude/
+.cowork/
+*.skill
+*-workspace/
+feedback.json
+eval_set*.json
+.__*.tmp

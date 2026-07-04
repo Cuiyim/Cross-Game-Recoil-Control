@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private readonly InputService _input = new();
     private readonly ProfileStore _profiles = new();
     private readonly AssistantRuntime _runtime;
+    private readonly RuleEngine _ruleEngine;
     private readonly ImageRecognitionMonitor _imageMonitor;
     private readonly GlobalInputHook _inputHook = new();
     private readonly StatusOverlayWindow _statusOverlay = new();
@@ -43,6 +44,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         _runtime = new AssistantRuntime(_input);
         _runtime.StatusChanged += (_, message) => RunOnUi(() => Log(message));
+        _ruleEngine = new RuleEngine(_input, _screenCapture);
+        _ruleEngine.StatusChanged += (_, message) => RunOnUi(() => Log(message));
         _imageMonitor = new ImageRecognitionMonitor(_screenCapture, _input);
         _imageMonitor.MatchFound += ImageMonitor_MatchFound;
         _imageMonitor.DebugUpdated += ImageMonitor_DebugUpdated;
@@ -51,10 +54,12 @@ public partial class MainWindow : Window
             SetStatus(message);
             Log(message);
         });
+        _inputHook.KeyChanged += InputHook_KeyChanged;
         _inputHook.MouseButtonChanged += InputHook_MouseButtonChanged;
         _inputHook.MouseWheel += InputHook_MouseWheel;
         _runtime.ApplySettings(_settings);
         LoadSettingsIntoUi();
+        _profiles.SeedBuiltInProfiles();
         RefreshProfiles();
         Log(Localization.T("Status.ProgramStarted"));
     }
@@ -62,6 +67,11 @@ public partial class MainWindow : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
+        var solidFallback = Background;
+        if (!MicaBackdrop.TryApply(this))
+        {
+            Background = solidFallback;
+        }
         _hwndSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
         _hwndSource?.AddHook(WndProc);
         RegisterHotkeys();
@@ -70,6 +80,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        _ruleEngine.ReleaseAll();
         _imageMonitor.Stop();
         _inputHook.Dispose();
         _screenCapture.Dispose();
@@ -111,6 +122,14 @@ public partial class MainWindow : Window
         TriggerSideKeyBox.SelectedIndex = TriggerSideKeyToIndex(_settings.TriggerSideKey);
         BreathHoldKeyBox.Text = _settings.BreathHoldKey;
         Cut31IntervalBox.Text = _settings.Cut31IntervalMs.ToString();
+        RuleEnabledBox.IsChecked = _settings.InputRulesEnabled;
+        if (RuleCategoryBox.SelectedIndex < 0)
+        {
+            RuleCategoryBox.SelectedIndex = 0;
+        }
+
+        UpdateRuleEditorVisibility();
+        RefreshRuleList();
         ApplyLanguage();
         StatusText.Text = AppSettings.SettingsSummary;
         ApplyRuntimeSettings();
@@ -141,6 +160,7 @@ public partial class MainWindow : Window
     {
         Title = Localization.T("App.Title");
         Localization.ApplyTo(this);
+        IntervalBox.ToolTip = Localization.T("Tooltip.IdlePoll");
         _statusOverlay.ApplyLanguage();
         _imageDebugOverlay.ApplyLanguage();
         UpdateTrajectoryPreview();
@@ -234,6 +254,8 @@ public partial class MainWindow : Window
         settings.TriggerSideKey = SelectedComboContent(TriggerSideKeyBox, "XButton2");
         settings.BreathHoldKey = breathHoldKey;
         settings.Cut31IntervalMs = Math.Clamp(cut31Interval, 10, 2000);
+        settings.InputRulesEnabled = _settings.InputRulesEnabled;
+        settings.InputRules = _settings.InputRules.Select(r => r.Clone()).ToList();
         return true;
     }
 
@@ -350,7 +372,9 @@ public partial class MainWindow : Window
         ImageHitStreakRequired = source.ImageHitStreakRequired,
         ImageTriggerMode = source.ImageTriggerMode,
         ImageTriggerCooldownMs = source.ImageTriggerCooldownMs,
-        ImageDebug = source.ImageDebug
+        ImageDebug = source.ImageDebug,
+        InputRulesEnabled = source.InputRulesEnabled,
+        InputRules = source.InputRules.Select(r => r.Clone()).ToList()
     };
 
     private bool TryReadInt(string text, string name, out int value)
@@ -686,6 +710,269 @@ public partial class MainWindow : Window
         target.Text = picker.SelectedKey;
         SetStatus($"{title}：{picker.SelectedKey}");
     }
+
+    private void PickRuleTriggerButton_Click(object sender, RoutedEventArgs e) =>
+        PickKey(RuleTriggerBox, Localization.T("Picker.StickyTrigger"), KeySelectionMode.KeyboardAndMouse);
+
+    private void PickRuleTargetButton_Click(object sender, RoutedEventArgs e) =>
+        PickKey(RuleTargetBox, Localization.T("Picker.StickyTarget"), KeySelectionMode.KeyboardAndMouse);
+
+    private void RuleEnabledBox_Changed(object sender, RoutedEventArgs e)
+    {
+        _settings.InputRulesEnabled = RuleEnabledBox.IsChecked == true;
+        _settings.Save();
+        ApplyRuntimeSettings();
+    }
+
+    private void RuleCategoryBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
+        UpdateRuleEditorVisibility();
+
+    private void UpdateRuleEditorVisibility()
+    {
+        // Guard: SelectionChanged can fire from InitializeComponent before the panels exist.
+        if (ContinuousRulePanel is null || ImageConditionPanel is null || ActionsPanel is null)
+        {
+            return;
+        }
+
+        var category = (RuleCategory)Math.Clamp(RuleCategoryBox.SelectedIndex, 0, 2);
+        ContinuousRulePanel.Visibility = category == RuleCategory.Continuous ? Visibility.Visible : Visibility.Collapsed;
+        ImageConditionPanel.Visibility = category == RuleCategory.ImageMatch ? Visibility.Visible : Visibility.Collapsed;
+        // 触发类 + 图像识别类 share the one-to-many timed-action editor.
+        ActionsPanel.Visibility = category == RuleCategory.Continuous ? Visibility.Collapsed : Visibility.Visible;
+        // 图像识别类 is triggered by the screen, not a key, so hide the trigger-key row.
+        RuleTriggerRow.Visibility = category == RuleCategory.ImageMatch ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void PickRuleColorButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Hide();
+            Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            var picker = new PixelPickerWindow();
+            if (picker.ShowDialog() != true || picker.SelectedPixel is not { } pixel)
+            {
+                SetStatus(Localization.T("ColorPicker.Cancelled"));
+                return;
+            }
+
+            var hex = ColorUtilities.ToHex(pixel.Rgb);
+            RuleColorBox.Text = hex;
+            SetStatus(Localization.Format("ColorPicker.Status", hex, pixel.X, pixel.Y));
+        }
+        catch (Exception ex)
+        {
+            SetStatus(Localization.Format("ColorPicker.Failed", ex.Message));
+            Log(ex.ToString());
+        }
+        finally
+        {
+            Show();
+            Activate();
+        }
+    }
+
+    private readonly List<RuleAction> _pendingActions = new();
+
+    private void PickRuleRegionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var picker = new RegionSelectionWindow { Owner = this };
+        if (picker.ShowDialog() != true || picker.SelectedRegion is not { } region)
+        {
+            SetStatus(Localization.T("Region.Cancelled"));
+            return;
+        }
+
+        RuleRegionX1Box.Text = region.Left.ToString();
+        RuleRegionY1Box.Text = region.Top.ToString();
+        RuleRegionX2Box.Text = region.Right.ToString();
+        RuleRegionY2Box.Text = region.Bottom.ToString();
+        SetStatus(Localization.Format("Region.Saved", region.Left, region.Top, region.Right, region.Bottom));
+    }
+
+    private void PickActionTargetButton_Click(object sender, RoutedEventArgs e) =>
+        PickKey(ActionTargetBox, Localization.T("Picker.StickyTarget"), KeySelectionMode.KeyboardAndMouse);
+
+    private void AddActionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var target = ActionTargetBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            SetStatus(Localization.T("Sticky.NeedKeys"));
+            return;
+        }
+
+        _pendingActions.Add(new RuleAction
+        {
+            TargetKey = target,
+            Form = (TriggerForm)Math.Clamp(ActionFormBox.SelectedIndex, 0, 2),
+            DelayMs = Math.Max(0, ParseIntOr(ActionDelayBox.Text, 0)),
+        });
+        ActionTargetBox.Text = string.Empty;
+        RefreshActionsList();
+    }
+
+    private void RemoveActionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var index = ActionsList.SelectedIndex;
+        if (index < 0 || index >= _pendingActions.Count)
+        {
+            return;
+        }
+
+        _pendingActions.RemoveAt(index);
+        RefreshActionsList();
+    }
+
+    private void RefreshActionsList()
+    {
+        ActionsList.Items.Clear();
+        foreach (var action in _pendingActions)
+        {
+            ActionsList.Items.Add(DescribeAction(action));
+        }
+    }
+
+    private void AddRuleButton_Click(object sender, RoutedEventArgs e)
+    {
+        var category = (RuleCategory)Math.Clamp(RuleCategoryBox.SelectedIndex, 0, 2);
+        var rule = new InputRule { Enabled = true, Category = category };
+
+        if (category == RuleCategory.Continuous)
+        {
+            var trigger = RuleTriggerBox.Text.Trim();
+            var target = RuleTargetBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(trigger) || string.IsNullOrWhiteSpace(target))
+            {
+                SetStatus(Localization.T("Sticky.NeedKeys"));
+                return;
+            }
+
+            if (string.Equals(KeyNameMapper.Normalize(trigger), KeyNameMapper.Normalize(target), StringComparison.Ordinal))
+            {
+                SetStatus(Localization.T("Sticky.SameKey"));
+                return;
+            }
+
+            rule.TriggerKey = trigger;
+            rule.TargetKey = target;
+            rule.ContinuousMode = (ContinuousMode)Math.Clamp(ContinuousModeBox.SelectedIndex, 0, 1);
+            rule.EngageMode = (EngageMode)Math.Clamp(EngageModeBox.SelectedIndex, 0, 1);
+            rule.RatePerMinute = Math.Clamp(ParseIntOr(RatePerMinuteBox.Text, 600), 1, 60000);
+            rule.Name = $"持续 {trigger} → {target}";
+        }
+        else
+        {
+            // 触发类 / 图像识别类: one trigger fires a list of timed actions (一对多).
+            if (_pendingActions.Count == 0)
+            {
+                SetStatus(Localization.T("Rule.NeedAction"));
+                return;
+            }
+
+            if (category == RuleCategory.Trigger)
+            {
+                var trigger = RuleTriggerBox.Text.Trim();
+                if (string.IsNullOrWhiteSpace(trigger))
+                {
+                    SetStatus(Localization.T("Sticky.NeedKeys"));
+                    return;
+                }
+
+                rule.TriggerKey = trigger;
+                rule.Name = Localization.Format("Rule.NameTrigger", trigger, _pendingActions.Count);
+            }
+            else
+            {
+                var color = RuleColorBox.Text.Trim();
+                if (!ColorUtilities.TryParseHexColor(color, out _))
+                {
+                    SetStatus(Localization.T("Error.TargetColorInvalidShort"));
+                    return;
+                }
+
+                rule.TargetColor = color;
+                rule.RegionX1 = ParseIntOr(RuleRegionX1Box.Text, 0);
+                rule.RegionY1 = ParseIntOr(RuleRegionY1Box.Text, 0);
+                rule.RegionX2 = ParseIntOr(RuleRegionX2Box.Text, 200);
+                rule.RegionY2 = ParseIntOr(RuleRegionY2Box.Text, 200);
+                rule.ColorTolerance = Math.Clamp(ParseIntOr(RuleToleranceBox.Text, 30), 0, 255);
+                rule.HitStreakRequired = Math.Max(1, ParseIntOr(RuleHitStreakBox.Text, 3));
+                rule.CooldownMs = Math.Max(0, ParseIntOr(RuleCooldownBox.Text, 300));
+                rule.ScanIntervalMs = Math.Clamp(ParseIntOr(RuleScanIntervalBox.Text, 50), 5, 2000);
+                rule.Name = Localization.Format("Rule.NameImage", _pendingActions.Count);
+            }
+
+            rule.Actions = _pendingActions.Select(a => a.Clone()).ToList();
+        }
+
+        _settings.InputRules.Add(rule);
+        _settings.Save();
+        ApplyRuntimeSettings();
+        RefreshRuleList();
+        _pendingActions.Clear();
+        RefreshActionsList();
+        SetStatus(Localization.T("Rule.Added"));
+    }
+
+    private void RemoveRuleButton_Click(object sender, RoutedEventArgs e)
+    {
+        var index = RuleList.SelectedIndex;
+        if (index < 0 || index >= _settings.InputRules.Count)
+        {
+            return;
+        }
+
+        _settings.InputRules.RemoveAt(index);
+        _settings.Save();
+        ApplyRuntimeSettings();
+        RefreshRuleList();
+    }
+
+    private void RefreshRuleList()
+    {
+        RuleList.Items.Clear();
+        foreach (var rule in _settings.InputRules)
+        {
+            RuleList.Items.Add(DescribeRule(rule));
+        }
+    }
+
+    private static string DescribeRule(InputRule rule)
+    {
+        switch (rule.Category)
+        {
+            case RuleCategory.Continuous:
+                var mode = rule.ContinuousMode == ContinuousMode.Hold ? "长按" : $"定速{rule.RatePerMinute}/分";
+                var engage = rule.EngageMode == EngageMode.Toggle ? "切换锁定" : "按住";
+                return $"[持续] {rule.TriggerKey} → {rule.TargetKey} · {mode} · {engage}";
+            case RuleCategory.Trigger:
+                return $"[触发] {rule.TriggerKey} → {DescribeActions(rule.Actions)}";
+            case RuleCategory.ImageMatch:
+                return $"[图像] {rule.TargetColor} → {DescribeActions(rule.Actions)}";
+            default:
+                return rule.Name;
+        }
+    }
+
+    private static string DescribeActions(List<RuleAction> actions) =>
+        actions.Count == 0 ? "—" : string.Join("，", actions.Select(DescribeAction));
+
+    private static string DescribeAction(RuleAction action) => action.DelayMs > 0
+        ? $"{action.TargetKey}({FormText(action.Form)}+{action.DelayMs}ms)"
+        : $"{action.TargetKey}({FormText(action.Form)})";
+
+    private static string FormText(TriggerForm form) => form switch
+    {
+        TriggerForm.Tap => "点击",
+        TriggerForm.Down => "按下",
+        TriggerForm.Up => "抬起",
+        _ => "点击",
+    };
+
+    private static int ParseIntOr(string? text, int fallback) =>
+        int.TryParse(text?.Trim(), out var value) ? value : fallback;
 
     private void PickColorButton_Click(object sender, RoutedEventArgs e)
     {
@@ -1138,15 +1425,18 @@ public partial class MainWindow : Window
         }
         else if (id == ImageHotkeyId)
         {
-            _settings.ImageRecognitionF2Enabled = !_settings.ImageRecognitionF2Enabled;
+            // After 统一, image recognition lives in the custom-rule engine, so F2 now toggles that
+            // engine — a quick on/off for all custom rules (including image) without alt-tabbing.
+            _settings.InputRulesEnabled = !_settings.InputRulesEnabled;
+            RuleEnabledBox.IsChecked = _settings.InputRulesEnabled;
             _settings.Save();
             ApplyRuntimeSettings();
-            SetStatus(_settings.ImageRecognitionF2Enabled ? Localization.T("Image.F2OnStatus") : Localization.T("Image.F2OffStatus"));
+            SetStatus(_settings.InputRulesEnabled ? Localization.T("Rule.F2OnStatus") : Localization.T("Rule.F2OffStatus"));
             ShowStateOverlay(
-                Localization.T("Ui.ImageRecognition"),
-                _settings.ImageRecognitionF2Enabled ? Localization.T("Image.F2OnDetail") : Localization.T("Image.F2OffDetail"),
-                _settings.ImageRecognitionF2Enabled);
-            Log(_settings.ImageRecognitionF2Enabled ? Localization.T("Image.Enabled") : Localization.T("Image.Disabled"));
+                Localization.T("Rule.Tab"),
+                _settings.InputRulesEnabled ? Localization.T("Status.Enabled") : Localization.T("Status.Disabled"),
+                _settings.InputRulesEnabled);
+            Log(_settings.InputRulesEnabled ? Localization.T("Rule.F2On") : Localization.T("Rule.F2Off"));
             handled = true;
         }
 
@@ -1156,6 +1446,7 @@ public partial class MainWindow : Window
     private void ApplyRuntimeSettings()
     {
         _runtime.ApplySettings(_settings);
+        _ruleEngine.ApplySettings(_settings);
         _imageMonitor.ApplySettings(_settings);
         UpdateImageDebugOverlayVisibility();
         UpdateTrajectoryPreview();
@@ -1230,9 +1521,15 @@ public partial class MainWindow : Window
         }
     }
 
+    private void InputHook_KeyChanged(object? sender, GlobalKeyEventArgs e)
+    {
+        _ruleEngine.HandleKey(e.VirtualKey, e.IsDown);
+    }
+
     private void InputHook_MouseButtonChanged(object? sender, GlobalMouseButtonEventArgs e)
     {
         _runtime.HandleMouseButton(e.Button, e.IsDown);
+        _ruleEngine.HandleMouseButton(e.Button, e.IsDown);
     }
 
     private void InputHook_MouseWheel(object? sender, GlobalMouseWheelEventArgs e)

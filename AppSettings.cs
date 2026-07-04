@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using LegendaryCSharp.Services;
 
 namespace LegendaryCSharp;
 
@@ -23,6 +24,9 @@ public sealed class AppSettings
     public bool SemiAutoMode { get; set; }
     public bool Cut31Enabled { get; set; } = true;
     public int Cut31IntervalMs { get; set; } = 60;
+    public bool InputRulesEnabled { get; set; } = true;
+    public List<InputRule> InputRules { get; set; } = new();
+    public bool ImageRuleMigrated { get; set; }
     public bool ImageRecognitionEnabled { get; set; }
     public bool ImageRecognitionF2Enabled { get; set; } = true;
     public int SearchX1 { get; set; } = 0;
@@ -66,7 +70,69 @@ public sealed class AppSettings
             imageSettings.ApplyTo(settings);
         }
 
+        // Defensive: also migrate rules that arrived via the legacy single-file path.
+        foreach (var rule in settings.InputRules)
+        {
+            rule.MigrateLegacyShapeIfNeeded();
+        }
+
+        MigrateImageConfigToRule(settings);
+
         return settings;
+    }
+
+    /// <summary>
+    /// 图像识别"统一": one-time fold of the standalone image-recognition config into an
+    /// <see cref="RuleCategory.ImageMatch"/> rule, then retire the standalone scanner so image
+    /// recognition runs only through <see cref="RuleEngine"/>. Idempotent via <see cref="ImageRuleMigrated"/>.
+    /// </summary>
+    private static void MigrateImageConfigToRule(AppSettings settings)
+    {
+        if (settings.ImageRuleMigrated)
+        {
+            return;
+        }
+
+        settings.ImageRuleMigrated = true;
+
+        var hasImageRule = settings.InputRules.Any(r => r.Category == RuleCategory.ImageMatch);
+        if (settings.ImageRecognitionEnabled
+            && !hasImageRule
+            && ColorUtilities.TryParseHexColor(settings.TargetColor, out _)
+            && !string.IsNullOrWhiteSpace(settings.TriggerKey))
+        {
+            var imageRule = new InputRule
+            {
+                Enabled = true,
+                Category = RuleCategory.ImageMatch,
+                Name = "图像(迁移)",
+                RegionX1 = settings.SearchX1,
+                RegionY1 = settings.SearchY1,
+                RegionX2 = settings.SearchX2,
+                RegionY2 = settings.SearchY2,
+                TargetColor = settings.TargetColor,
+                ColorTolerance = settings.ColorTolerance,
+                HitStreakRequired = Math.Max(1, settings.ImageHitStreakRequired),
+                CooldownMs = Math.Max(0, settings.ImageTriggerCooldownMs),
+                ScanIntervalMs = settings.SearchIntervalMs,
+            };
+            imageRule.Actions.Add(new RuleAction
+            {
+                TargetKey = settings.TriggerKey,
+                DelayMs = 0,
+                Form = settings.ImageTriggerMode switch
+                {
+                    ImageTriggerMode.Down => TriggerForm.Down,
+                    ImageTriggerMode.Up => TriggerForm.Up,
+                    _ => TriggerForm.Tap,
+                },
+            });
+            settings.InputRules.Add(imageRule);
+            settings.InputRulesEnabled = true;
+        }
+
+        // Retire the standalone scanner regardless: image behaviour now lives in the rule engine.
+        settings.ImageRecognitionEnabled = false;
     }
 
     private static AppSettings? TryReadLegacySettings()
@@ -249,6 +315,9 @@ public sealed class AppSettings
         public bool SemiAutoMode { get; set; }
         public bool Cut31Enabled { get; set; } = true;
         public int Cut31IntervalMs { get; set; } = 60;
+        public bool InputRulesEnabled { get; set; } = true;
+        public List<InputRule> InputRules { get; set; } = new();
+        public bool ImageRuleMigrated { get; set; }
 
         public static MainSettingsDocument From(AppSettings settings) => new()
         {
@@ -265,7 +334,10 @@ public sealed class AppSettings
             BreathHoldKey = settings.BreathHoldKey,
             SemiAutoMode = settings.SemiAutoMode,
             Cut31Enabled = settings.Cut31Enabled,
-            Cut31IntervalMs = settings.Cut31IntervalMs
+            Cut31IntervalMs = settings.Cut31IntervalMs,
+            InputRulesEnabled = settings.InputRulesEnabled,
+            InputRules = settings.InputRules.Select(r => r.Clone()).ToList(),
+            ImageRuleMigrated = settings.ImageRuleMigrated
         };
 
         public void ApplyTo(AppSettings settings, bool applyLanguage = true)
@@ -288,6 +360,15 @@ public sealed class AppSettings
             settings.SemiAutoMode = SemiAutoMode;
             settings.Cut31Enabled = Cut31Enabled;
             settings.Cut31IntervalMs = Cut31IntervalMs;
+            settings.InputRulesEnabled = InputRulesEnabled;
+            settings.ImageRuleMigrated = ImageRuleMigrated;
+            settings.InputRules = InputRules.Select(r =>
+            {
+                // Fold any step-1 (Trigger/Actions) rules onto the current model before cloning,
+                // so users upgrading from v3.1.5 keep their saved 黏连 rules.
+                r.MigrateLegacyShapeIfNeeded();
+                return r.Clone();
+            }).ToList();
         }
     }
 

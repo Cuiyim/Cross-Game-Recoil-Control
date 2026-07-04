@@ -7,13 +7,24 @@ namespace LegendaryCSharp;
 public sealed class ScreenCaptureService : IDisposable
 {
     private readonly object _searchCaptureLock = new();
+    // Serialises FindColor so concurrent scanners (the image-tab monitor and any 图像识别类 rules)
+    // can't enter the DXGI capture at once. Uncontended when only one scanner is active.
+    private readonly object _findColorLock = new();
     private Bitmap? _searchBitmap;
     private Graphics? _searchGraphics;
     private Rectangle _cachedVirtualScreenBounds;
     private DateTime _screenBoundsCachedUtc = DateTime.MinValue;
+    private readonly DesktopDuplicationCapture? _desktopDuplication = new();
+    private bool _useDuplication = true;
     private bool _disposed;
 
     public string LastCaptureBackend { get; private set; } = "GDI";
+
+    /// <summary>Last DXGI AcquireNextFrame + copy time in ms (≈ frame-present cadence). 0 on the GDI path.</summary>
+    public double LastAcquireMs => _desktopDuplication?.LastAcquireMs ?? 0;
+
+    /// <summary>Last DXGI map + scan time in ms. 0 on the GDI path.</summary>
+    public double LastScanMs => _desktopDuplication?.LastScanMs ?? 0;
 
     public int GetPixelColor(int x, int y)
     {
@@ -27,6 +38,15 @@ public sealed class ScreenCaptureService : IDisposable
     }
 
     public PixelSearchResult? FindColor(Rectangle region, int targetRgb, int tolerance)
+        => FindColor(region, targetRgb, tolerance, 0);
+
+    /// <summary>
+    /// <paramref name="blockingAcquireMs"/> lets the DXGI backend block (up to that many ms)
+    /// until the desktop presents a new frame, so a scan loop can be frame-driven instead of
+    /// polling on a fixed timer. Pass 0 for a non-blocking one-shot search. Ignored by the GDI
+    /// fallback.
+    /// </summary>
+    public PixelSearchResult? FindColor(Rectangle region, int targetRgb, int tolerance, int blockingAcquireMs)
     {
         var bounds = NormalizeScreenRegion(region);
         if (bounds.IsEmpty)
@@ -34,6 +54,31 @@ public sealed class ScreenCaptureService : IDisposable
             return null;
         }
 
+        lock (_findColorLock)
+        {
+            if (_desktopDuplication is not null && _useDuplication)
+            {
+                try
+                {
+                    if (_desktopDuplication.TryFindColor(bounds, targetRgb, tolerance, blockingAcquireMs, out var dxResult))
+                    {
+                        LastCaptureBackend = "DXGI";
+                        return dxResult;
+                    }
+                }
+                catch
+                {
+                    // Hard failure (e.g. DXGI unavailable on this machine): stop trying and use GDI.
+                    _useDuplication = false;
+                }
+            }
+
+            return FindColorGdi(bounds, targetRgb, tolerance);
+        }
+    }
+
+    private PixelSearchResult? FindColorGdi(Rectangle bounds, int targetRgb, int tolerance)
+    {
         lock (_searchCaptureLock)
         {
             ThrowIfDisposed();
@@ -186,6 +231,7 @@ public sealed class ScreenCaptureService : IDisposable
                 return;
             }
 
+            _desktopDuplication?.Dispose();
             _searchGraphics?.Dispose();
             _searchBitmap?.Dispose();
             _disposed = true;

@@ -36,7 +36,7 @@ public static class UsageGuide
         - 先用连续命中 1 测触发；误触多了再改成 2 或 3。
         - Tap 是点击，Down 是按下，Up 是抬起，Auto 会按当前按键状态处理。
         - 打开“调试日志”可以看扫描、命中、触发状态。
-        - 间隔越低越吃性能；如果游戏卡顿，先把区域缩小，再把间隔调高。
+        - 空闲轮询（原“间隔”）不再影响游戏内反应速度：目标出现时会被新帧立即唤醒。它只决定画面静止时多久重扫一次——越小越费 CPU，越大越省；只有在 DXGI 不可用、回退到 GDI 时，它才重新变回真正的轮询周期。游戏卡顿就先缩小区域。
 
         档案
         - 通用档案：压枪、屏息、半自动、31切枪这些参数。
@@ -90,7 +90,7 @@ public static class UsageGuide
         - Start with Hit Streak 1 while testing, then raise it to 2 or 3 if false triggers happen.
         - Tap clicks once, Down presses, Up releases, and Auto reacts to the current key state.
         - Debug Log shows scanning, matching, and trigger status.
-        - Lower intervals cost more performance. If the game stutters, shrink the region first, then raise the interval.
+        - Idle Poll (formerly "Interval") no longer affects in-game reaction speed — a new frame wakes detection the instant the target appears. It only sets how often the screen is re-scanned while static (smaller = more idle CPU, larger = less); it becomes a real poll period again only on the GDI fallback when DXGI is unavailable. If the game stutters, shrink the region first.
 
         Profiles
         - General profiles store recoil, breath hold, semi-auto, and 31 swap parameters.

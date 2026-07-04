@@ -248,15 +248,15 @@ EDC864
 - 数值越大，允许的 RGB 差异越大。
 - 如果扫描中但没有命中，可以适当提高容差。
 
-### 间隔
+### 空闲轮询（原“间隔”）
 
-间隔单位是毫秒，当前输入范围会被限制在：
+单位毫秒，当前输入范围会被限制在：
 
 ```text
 20 - 2000
 ```
 
-间隔表示“扫描循环的目标周期”，不等于最终反应延迟。最终延迟还会受到截图耗时、搜索区域大小、连续命中、触发冷却、系统调度和目标程序响应方式影响。
+注意：自帧驱动捕获改造后，此项**不再影响游戏内反应速度**——截图后端（DXGI Desktop Duplication）会在桌面合成出新一帧时立即唤醒检测，目标一出现就被捕获，与此值无关。它现在只决定**画面静止时多久重扫一次**：越小越费 CPU，越大越省；只有在 DXGI 不可用、回退到 GDI 时，它才重新变回真正的轮询周期。
 
 ### 连续命中
 
@@ -692,15 +692,15 @@ Tolerance range:
 - Higher values allow larger RGB differences.
 - If recognition is scanning but not matching, raise tolerance gradually.
 
-### Interval
+### Idle Poll (formerly "Interval")
 
-Interval is measured in milliseconds. The current input range is clamped to:
+Measured in milliseconds. The current input range is clamped to:
 
 ```text
 20 - 2000
 ```
 
-Interval means the target period of the scan loop. It is not the final reaction latency. Final latency also includes screenshot time, search region size, hit-streak requirement, trigger cooldown, system scheduling, and the target program's response behavior.
+Since the frame-driven capture rework, this **no longer affects in-game reaction speed** — the capture backend (DXGI Desktop Duplication) wakes detection the instant the desktop composites a new frame, so the target is caught as soon as it appears, independent of this value. It now only sets **how often the screen is re-scanned while static**: smaller costs more idle CPU, larger costs less. It becomes a real poll period again only on the GDI fallback when DXGI is unavailable.
 
 ### Hit Streak
 

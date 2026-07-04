@@ -67,13 +67,9 @@ public sealed class GlobalInputHook : IDisposable
 
         if (KeyChanged is not null && _keyboardHook == IntPtr.Zero)
         {
+            // Best-effort: if the keyboard hook can't be installed we keep the mouse hook running
+            // so existing mouse features still work; only keyboard-triggered rules go silent.
             _keyboardHook = SetWindowsHookEx(WhKeyboardLl, _keyboardProc, GetModuleHandle(null), 0);
-            if (_keyboardHook == IntPtr.Zero)
-            {
-                UnhookWindowsHookEx(_mouseHook);
-                _mouseHook = IntPtr.Zero;
-                throw new Win32Exception(Marshal.GetLastWin32Error(), Localization.T("Input.KeyboardHookStartFailed"));
-            }
         }
     }
 

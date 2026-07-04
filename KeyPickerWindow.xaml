@@ -8,15 +8,14 @@
         MinHeight="460"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize"
-        Background="#F4F1EA">
+        Background="#F2F2F7">
     <Window.Resources>
-        <Style x:Key="KeyButtonStyle" TargetType="Button">
+        <Style x:Key="KeyButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Height" Value="38" />
             <Setter Property="Margin" Value="3" />
             <Setter Property="Padding" Value="8,0" />
-            <Setter Property="Background" Value="#FFFDF8" />
-            <Setter Property="BorderBrush" Value="#B9B0A1" />
-            <Setter Property="Foreground" Value="#263238" />
+            <Setter Property="Background" Value="{StaticResource PopupBgBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource LabelBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
     </Window.Resources>
@@ -28,36 +27,33 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Background="#1F2A2E" CornerRadius="8" Padding="14" Margin="0,0,0,14">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock x:Name="TitleText"
-                               Text="选择按键"
-                               Foreground="#F7F0E2"
-                               FontSize="22"
-                               FontWeight="SemiBold" />
-                    <TextBlock x:Name="HintText"
-                               Text="点一个键"
-                               Foreground="#C8D6CF"
-                               Margin="0,5,0,0" />
-                </StackPanel>
-                <Border Grid.Column="1"
-                        BorderBrush="#C8D6CF"
-                        BorderThickness="1"
-                        CornerRadius="4"
-                        Padding="12,6"
-                        VerticalAlignment="Center">
-                    <TextBlock x:Name="CurrentKeyText"
-                               Text="当前："
-                               Foreground="#F7F0E2"
-                               FontWeight="SemiBold" />
-                </Border>
-            </Grid>
-        </Border>
+        <Grid Margin="2,2,2,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="TitleText"
+                           Text="选择按键"
+                           Foreground="{StaticResource LabelBrush}"
+                           FontSize="24"
+                           FontWeight="SemiBold" />
+                <TextBlock x:Name="HintText"
+                           Text="点一个键"
+                           Foreground="{StaticResource SecondaryLabelBrush}"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+            <Border Grid.Column="1"
+                    Background="{StaticResource FillInputBrush}"
+                    CornerRadius="8"
+                    Padding="14,8"
+                    VerticalAlignment="Center">
+                <TextBlock x:Name="CurrentKeyText"
+                           Text="当前："
+                           Foreground="{StaticResource LabelBrush}"
+                           FontWeight="SemiBold" />
+            </Border>
+        </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid>
@@ -71,7 +67,7 @@
                     <TextBlock Text="键盘"
                                FontSize="16"
                                FontWeight="SemiBold"
-                               Foreground="#263238"
+                               Foreground="{StaticResource LabelBrush}"
                                Margin="0,0,0,8" />
                     <UniformGrid x:Name="FunctionKeyPanel" Rows="1" Columns="13" />
                     <UniformGrid x:Name="NumberKeyPanel" Rows="1" Columns="10" Margin="0,8,0,0" />
@@ -101,7 +97,7 @@
                     <TextBlock Text="鼠标"
                                FontSize="16"
                                FontWeight="SemiBold"
-                               Foreground="#263238"
+                               Foreground="{StaticResource LabelBrush}"
                                Margin="0,0,0,8" />
                     <UniformGrid x:Name="MouseKeyPanel" Rows="5" Columns="1" />
                 </StackPanel>

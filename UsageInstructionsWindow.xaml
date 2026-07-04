@@ -8,7 +8,7 @@
         MinWidth="520"
         MinHeight="420"
         WindowStartupLocation="CenterOwner"
-        Background="#F4F1EA">
+        Background="#F2F2F7">
     <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -17,23 +17,23 @@
         </Grid.RowDefinitions>
 
         <TextBlock Text="使用说明 v3.1.5"
-                   FontSize="24"
+                   FontSize="26"
                    FontWeight="SemiBold"
-                   Foreground="#1F2A2E"
+                   Foreground="{StaticResource LabelBrush}"
                    Margin="0,0,0,14" />
 
         <Border Grid.Row="1"
-                BorderBrush="#C7BCA9"
+                BorderBrush="{StaticResource SeparatorBrush}"
                 BorderThickness="1"
-                Background="#FFFCF7"
-                CornerRadius="6">
+                Background="{StaticResource CardBgBrush}"
+                CornerRadius="12">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           Padding="14">
                 <TextBlock x:Name="UsageText"
                            TextWrapping="Wrap"
                            FontSize="14"
                            LineHeight="23"
-                           Foreground="#263235" />
+                           Foreground="{StaticResource LabelBrush}" />
             </ScrollViewer>
         </Border>
 

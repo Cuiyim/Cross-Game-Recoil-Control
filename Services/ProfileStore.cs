@@ -20,6 +20,86 @@ public sealed class ProfileStore
     private string ImageRecognitionProfileDirectory =>
         Path.Combine(ProfileDirectory, "ImageRecognition");
 
+    private string BuiltInMarkerPath =>
+        Path.Combine(ProfileDirectory, ".builtin-presets.json");
+
+    /// <summary>
+    /// 首次启动时把内置预设（见 <see cref="BuiltInProfiles"/>）写入 General 档案目录，让新用户可以直接选用。
+    /// 用一个标记文件记录「哪些预设已经种过」：已种过的不再重复写，因此用户主动删掉某个预设后不会被重新塞回；
+    /// 未来版本新增预设时，也只会补种新的那几个。整个过程尽力而为，任何异常都不应阻塞启动。
+    /// </summary>
+    public void SeedBuiltInProfiles()
+    {
+        try
+        {
+            MigrateLegacyProfiles();
+            Directory.CreateDirectory(GeneralProfileDirectory);
+
+            var seeded = LoadSeededMarker();
+            var changed = false;
+
+            foreach (var preset in BuiltInProfiles.GeneralPresets)
+            {
+                if (seeded.Contains(preset.Name))
+                {
+                    continue;
+                }
+
+                var path = GetProfilePath(GeneralProfileDirectory, preset.Name);
+                if (!File.Exists(path))
+                {
+                    var json = JsonSerializer.Serialize(preset.Document, JsonOptions);
+                    File.WriteAllText(path, json);
+                }
+
+                seeded.Add(preset.Name);
+                changed = true;
+            }
+
+            if (changed)
+            {
+                SaveSeededMarker(seeded);
+            }
+        }
+        catch
+        {
+            // 种预设是锦上添花，失败也不能影响程序启动。
+        }
+    }
+
+    private HashSet<string> LoadSeededMarker()
+    {
+        try
+        {
+            if (File.Exists(BuiltInMarkerPath))
+            {
+                var json = File.ReadAllText(BuiltInMarkerPath);
+                var marker = JsonSerializer.Deserialize<BuiltInMarker>(json);
+                if (marker?.SeededNames is { } names)
+                {
+                    return new HashSet<string>(names, StringComparer.Ordinal);
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        return new HashSet<string>(StringComparer.Ordinal);
+    }
+
+    private void SaveSeededMarker(HashSet<string> seeded)
+    {
+        Directory.CreateDirectory(ProfileDirectory);
+        var marker = new BuiltInMarker { SeededNames = seeded.OrderBy(n => n, StringComparer.Ordinal).ToList() };
+        File.WriteAllText(BuiltInMarkerPath, JsonSerializer.Serialize(marker, JsonOptions));
+    }
+
+    private sealed class BuiltInMarker
+    {
+        public List<string> SeededNames { get; set; } = new();
+    }
+
     public IReadOnlyList<string> ListGeneralProfiles() =>
         ListProfiles(GeneralProfileDirectory);
 

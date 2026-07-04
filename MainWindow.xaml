@@ -8,7 +8,7 @@
         MinWidth="760"
         MinHeight="560"
         WindowStartupLocation="CenterScreen"
-        Background="#F4F1EA">
+        Background="#F2F2F7">
     <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -16,48 +16,43 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Background="#1F2A2E" CornerRadius="8" Padding="18">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="Legendary v3.1.5"
-                               Foreground="#F7F0E2"
-                               FontSize="26"
-                               FontWeight="SemiBold" />
-                    <TextBlock Text="热键、压枪、屏息、切枪、图像识别"
-                               Foreground="#C8D6CF"
-                               Margin="0,6,0,0"
-                               FontSize="14" />
-                </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="语言"
-                               Foreground="#C8D6CF"
-                               VerticalAlignment="Center"
-                               Margin="0,0,6,0" />
-                    <ComboBox x:Name="LanguageBox"
-                              Width="118"
-                              Height="34"
-                              Margin="0,0,10,0"
-                              SelectionChanged="LanguageBox_SelectionChanged">
-                        <ComboBoxItem Tag="zh-CN" Content="中文" />
-                        <ComboBoxItem Tag="en-US" Content="English" />
-                    </ComboBox>
-                    <Button Content="使用说明" Width="82" Height="34" Margin="0,0,8,0" Click="HelpButton_Click" />
-                    <Button x:Name="SaveButton" Content="保存全部" Width="90" Height="34" Margin="0,0,8,0" Click="SaveButton_Click" />
-                    <Button x:Name="ReloadButton" Content="重载" Width="70" Height="34" Click="ReloadButton_Click" />
-                </StackPanel>
-            </Grid>
-        </Border>
+        <Grid Margin="4,6,4,2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Legendary" Style="{StaticResource TitleText}" />
+                <TextBlock Text="热键、压枪、屏息、切枪、图像识别"
+                           Style="{StaticResource SubtitleText}"
+                           Margin="0,2,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="语言"
+                           Foreground="{StaticResource SecondaryLabelBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0" />
+                <ComboBox x:Name="LanguageBox"
+                          Width="118"
+                          Height="34"
+                          Margin="0,0,10,0"
+                          SelectionChanged="LanguageBox_SelectionChanged">
+                    <ComboBoxItem Tag="zh-CN" Content="中文" />
+                    <ComboBoxItem Tag="en-US" Content="English" />
+                </ComboBox>
+                <Button Content="使用说明" Height="34" Margin="0,0,8,0" Click="HelpButton_Click" />
+                <Button x:Name="SaveButton" Content="保存全部" Height="34" Margin="0,0,8,0"
+                        Click="SaveButton_Click" Style="{StaticResource PrimaryButton}" />
+                <Button x:Name="ReloadButton" Content="重载" Height="34" Click="ReloadButton_Click" />
+            </StackPanel>
+        </Grid>
 
         <TabControl x:Name="MainTabs" Grid.Row="1" Margin="0,16,0,16">
             <TabItem Header="总览">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="14">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                            <Button Content="档案" Width="72" Height="30" Click="OpenProfilesButton_Click" />
+                            <Button Content="档案" Height="30" Click="OpenProfilesButton_Click" />
                         </StackPanel>
 
                         <Grid Margin="0,0,0,18">
@@ -70,7 +65,7 @@
                             <Grid Grid.Column="1">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="66" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="MasterHotkeyBox"
                                          Height="30"
@@ -85,7 +80,7 @@
                             </Grid>
                             <TextBlock Grid.Column="2"
                                        Text="默认 PageDown，保存后生效。"
-                                       Foreground="#66736F"
+                                       Foreground="{StaticResource SecondaryLabelBrush}"
                                        VerticalAlignment="Center"
                                        Margin="12,0,0,0" />
                         </Grid>
@@ -101,7 +96,7 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="72" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="36" />
@@ -124,7 +119,7 @@
                                 </Grid>
                             </GroupBox>
 
-                            <GroupBox Grid.Column="2" Header="图像识别" Padding="14">
+                            <GroupBox Grid.Column="2" Header="图像识别" Padding="14" Visibility="Collapsed">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -140,7 +135,7 @@
                                     <TextBlock Grid.Row="1"
                                                Grid.ColumnSpan="2"
                                                Text="F2 切换图像识别；不受热键总开关影响。"
-                                               Foreground="#66736F"
+                                               Foreground="{StaticResource SecondaryLabelBrush}"
                                                TextWrapping="Wrap"
                                                Margin="0,10,0,0" />
                                 </Grid>
@@ -205,9 +200,10 @@
                             <StackPanel>
                                 <TextBlock x:Name="TrajectoryInfoText"
                                            Text="垂直: 0  横向: 0"
-                                           Foreground="#263238"
+                                           Foreground="{StaticResource LabelBrush}"
+                                           TextWrapping="Wrap"
                                            Margin="0,0,0,10" />
-                                <Border BorderBrush="#B9B0A1" BorderThickness="1" Background="#FFFDF8" CornerRadius="4">
+                                <Border BorderBrush="{StaticResource SeparatorBrush}" BorderThickness="1" Background="#FFFFFF" CornerRadius="8">
                                     <Canvas x:Name="TrajectoryCanvas"
                                             Height="220"
                                             Background="#FFFFFF"
@@ -220,7 +216,7 @@
                                     </Canvas>
                                 </Border>
                                 <TextBlock Text="数值变化后自动刷新。"
-                                           Foreground="#66736F"
+                                           Foreground="{StaticResource SecondaryLabelBrush}"
                                            TextWrapping="Wrap"
                                            Margin="0,10,0,0" />
                             </StackPanel>
@@ -249,7 +245,7 @@
                                 <Grid Grid.Column="1" Margin="4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="66" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="BreathHoldKeyBox" IsReadOnly="True" />
                                     <Button Grid.Column="1"
@@ -279,7 +275,7 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="图像识别">
+            <TabItem Header="图像识别" Visibility="Collapsed">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="14">
                         <GroupBox Header="搜索区域" Padding="14" Margin="0,0,0,12">
@@ -320,7 +316,7 @@
                                 <TextBlock Text="容差(0-255)" Grid.Row="1" VerticalAlignment="Center" />
                                 <TextBox x:Name="ToleranceBox" Grid.Row="1" Grid.Column="1" Margin="4" />
 
-                                <TextBlock Text="间隔(ms)" Grid.Row="2" VerticalAlignment="Center" />
+                                <TextBlock Text="空闲轮询(ms)" Grid.Row="2" VerticalAlignment="Center" />
                                 <TextBox x:Name="IntervalBox" Grid.Row="2" Grid.Column="1" Margin="4" />
 
                                 <TextBlock Text="发送键" Grid.Row="3" VerticalAlignment="Center" />
@@ -374,10 +370,170 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="自定义规则">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="14">
+                        <CheckBox x:Name="RuleEnabledBox" Content="启用自定义规则" Margin="0,0,0,8"
+                                  Click="RuleEnabledBox_Changed" />
+                        <TextBlock Text="把按键行为拆成三大类：持续类（长按 / 定速点击）、触发类（一个键触发多个键，可设延迟）、图像识别类（按屏幕颜色触发）。受热键总开关控制。"
+                                   TextWrapping="Wrap" Opacity="0.75" Margin="0,0,0,14" />
+
+                        <GroupBox Header="新建规则" Padding="14">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="规则类型" VerticalAlignment="Center" />
+                                    <ComboBox x:Name="RuleCategoryBox" Grid.Column="1" SelectedIndex="0"
+                                              SelectionChanged="RuleCategoryBox_SelectionChanged">
+                                        <ComboBoxItem Content="持续类" />
+                                        <ComboBoxItem Content="触发类" />
+                                        <ComboBoxItem Content="图像识别类" />
+                                    </ComboBox>
+                                </Grid>
+
+                                <Grid x:Name="RuleTriggerRow" Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="触发键" VerticalAlignment="Center" />
+                                    <TextBox x:Name="RuleTriggerBox" Grid.Column="1" Margin="4" IsReadOnly="True" />
+                                    <Button Grid.Column="2" Content="选择" Width="66" Margin="4" Click="PickRuleTriggerButton_Click" />
+                                </Grid>
+
+                                <StackPanel x:Name="ContinuousRulePanel" Margin="0,6,0,0">
+                                    <Grid x:Name="ContinuousTargetRow" Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="目标键" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleTargetBox" Grid.Column="1" Margin="4" IsReadOnly="True" />
+                                        <Button Grid.Column="2" Content="选择" Width="66" Margin="4" Click="PickRuleTargetButton_Click" />
+                                    </Grid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="持续方式" Grid.Row="0" VerticalAlignment="Center" />
+                                        <ComboBox x:Name="ContinuousModeBox" Grid.Row="0" Grid.Column="1" Margin="4" SelectedIndex="0">
+                                            <ComboBoxItem Content="长按" />
+                                            <ComboBoxItem Content="定速点击" />
+                                        </ComboBox>
+                                        <TextBlock Text="触发模式" Grid.Row="1" VerticalAlignment="Center" />
+                                        <ComboBox x:Name="EngageModeBox" Grid.Row="1" Grid.Column="1" Margin="4" SelectedIndex="1">
+                                            <ComboBoxItem Content="按住触发" />
+                                            <ComboBoxItem Content="切换锁定" />
+                                        </ComboBox>
+                                        <TextBlock Text="点击/分钟" Grid.Row="2" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RatePerMinuteBox" Grid.Row="2" Grid.Column="1" Margin="4" Text="600" />
+                                    </Grid>
+                                    <TextBlock Text="“点击/分钟”仅在“定速点击”时生效；“切换锁定”=点一下锁住、再点松开。"
+                                               Foreground="{StaticResource SecondaryLabelBrush}" TextWrapping="Wrap" Margin="4,2,0,0" />
+                                </StackPanel>
+
+                                <StackPanel x:Name="ImageConditionPanel" Margin="0,6,0,0">
+                                    <UniformGrid Columns="4" Rows="2">
+                                        <TextBlock Text="X1" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleRegionX1Box" Margin="4" Text="0" />
+                                        <TextBlock Text="Y1" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleRegionY1Box" Margin="4" Text="0" />
+                                        <TextBlock Text="X2" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleRegionX2Box" Margin="4" Text="200" />
+                                        <TextBlock Text="Y2" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleRegionY2Box" Margin="4" Text="200" />
+                                    </UniformGrid>
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="目标颜色" Grid.Row="0" VerticalAlignment="Center" />
+                                        <Grid Grid.Row="0" Grid.Column="1" Margin="4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="RuleColorBox" Text="0x000000" />
+                                            <Button Grid.Column="1" Content="取色" Margin="6,0,0,0" Click="PickRuleColorButton_Click" />
+                                            <Button Grid.Column="2" Content="框选区域" Margin="6,0,0,0" Click="PickRuleRegionButton_Click" />
+                                        </Grid>
+                                        <TextBlock Text="容差(0-255)" Grid.Row="1" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleToleranceBox" Grid.Row="1" Grid.Column="1" Margin="4" Text="30" />
+                                        <TextBlock Text="连续命中" Grid.Row="2" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleHitStreakBox" Grid.Row="2" Grid.Column="1" Margin="4" Text="3" />
+                                        <TextBlock Text="冷却ms" Grid.Row="3" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleCooldownBox" Grid.Row="3" Grid.Column="1" Margin="4" Text="300" />
+                                        <TextBlock Text="扫描间隔ms" Grid.Row="4" VerticalAlignment="Center" />
+                                        <TextBox x:Name="RuleScanIntervalBox" Grid.Row="4" Grid.Column="1" Margin="4" Text="50" />
+                                    </Grid>
+                                    <TextBlock Text="图像识别类由屏幕颜色触发，无需触发键；可在游戏进程内工作。"
+                                               Foreground="{StaticResource SecondaryLabelBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                </StackPanel>
+
+                                <StackPanel x:Name="ActionsPanel" Margin="0,8,0,0">
+                                    <TextBlock Text="动作（可加多个：同时触发→延迟都填 0；错峰触发→填不同延迟）"
+                                               Opacity="0.75" TextWrapping="Wrap" Margin="0,0,0,4" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="ActionTargetBox" Margin="4" IsReadOnly="True" VerticalContentAlignment="Center" />
+                                        <Button Grid.Column="1" Content="选择" Width="56" Margin="4" Click="PickActionTargetButton_Click" />
+                                        <ComboBox Grid.Column="2" x:Name="ActionFormBox" Width="84" Margin="4" SelectedIndex="0">
+                                            <ComboBoxItem Content="点击" />
+                                            <ComboBoxItem Content="按下" />
+                                            <ComboBoxItem Content="抬起" />
+                                        </ComboBox>
+                                        <TextBox Grid.Column="3" x:Name="ActionDelayBox" Width="66" Margin="4" Text="0" VerticalContentAlignment="Center" />
+                                        <TextBlock Grid.Column="4" Text="ms" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                        <Button Grid.Column="5" Content="添加动作" Margin="4" Click="AddActionButton_Click" />
+                                    </Grid>
+                                    <ListBox x:Name="ActionsList" Height="92" Margin="4,0" />
+                                    <Button Content="删除动作" HorizontalAlignment="Left" Margin="4,6,0,0" Padding="10,3" Click="RemoveActionButton_Click" />
+                                </StackPanel>
+
+                                <Button Content="添加规则" HorizontalAlignment="Left" Margin="0,12,0,0" Padding="14,5"
+                                        Click="AddRuleButton_Click" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <TextBlock Text="已添加的规则" Margin="0,14,0,4" />
+                        <ListBox x:Name="RuleList" Height="150" />
+                        <Button Content="删除选中" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="14,5"
+                                Click="RemoveRuleButton_Click" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="配置档案 / 日志">
                 <Grid Margin="14">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="310" />
+                        <ColumnDefinition Width="340" />
                         <ColumnDefinition Width="18" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
@@ -461,8 +617,11 @@
             </TabItem>
         </TabControl>
 
-        <Border Grid.Row="2" Background="#E6DED0" CornerRadius="6" Padding="10">
-            <TextBlock x:Name="StatusText" Text="准备就绪" Foreground="#243033" />
+        <Border Grid.Row="2" Background="{StaticResource CardBgBrush}" CornerRadius="10" Padding="14,9">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="1" Opacity="0.06" Color="#000000" />
+            </Border.Effect>
+            <TextBlock x:Name="StatusText" Text="准备就绪" Foreground="{StaticResource SecondaryLabelBrush}" />
         </Border>
     </Grid>
 </Window>

@@ -16,6 +16,12 @@
     <FileVersion>3.1.8.0</FileVersion>
     <Product>Legendary v3.1.8</Product>
   </PropertyGroup>
+
+  <!-- 让 dotnet publish 默认输出到仓库根目录下的 publish\（路径更浅、好找）；
+       命令行用 -o 指定输出目录时，仍以命令行为准。 -->
+  <PropertyGroup>
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildProjectDirectory)\publish\</PublishDir>
+  </PropertyGroup>
   <ItemGroup>
     <Resource Include="Assets\app.ico" />
     <PackageReference Include="Vanara.PInvoke.User32" Version="5.0.4" />
