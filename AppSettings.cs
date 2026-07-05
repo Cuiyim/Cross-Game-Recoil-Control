@@ -8,7 +8,7 @@ public sealed class AppSettings
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private const string ExportFormat = "LegendaryCSharp.SettingsExport";
-    private const string ExportAppVersion = "3.1.5";
+    private const string ExportAppVersion = "3.1.8";
 
     public string Language { get; set; } = Localization.Chinese;
     public string MasterHotkey { get; set; } = "PageDown";

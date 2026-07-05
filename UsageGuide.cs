@@ -6,7 +6,7 @@ public static class UsageGuide
 
     private const string ChineseText =
         """
-        使用说明 v3.1.5
+        使用说明 v3.1.8
 
         语言
         - 主窗口右上角可以选择中文或 English。
@@ -60,7 +60,7 @@ public static class UsageGuide
 
     private const string EnglishText =
         """
-        Usage Guide v3.1.5
+        Usage Guide v3.1.8
 
         Language
         - Use the selector in the top-right corner to switch between Chinese and English.
